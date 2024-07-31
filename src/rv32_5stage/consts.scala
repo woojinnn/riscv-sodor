@@ -87,6 +87,17 @@ trait ScalarOpConstants
    val ALU_COPY_2 = 11.asUInt(4.W)
    val ALU_X      = 0.asUInt(4.W)
 
+   // MDU Operation Signal
+   val MDU_MUL    = 1.asUInt(4.W)
+   val MDU_MULH   = 2.asUInt(4.W)
+   val MDU_MULHSU = 3.asUInt(4.W)
+   val MDU_MULHU  = 4.asUInt(4.W)
+   val MDU_DIV    = 5.asUInt(4.W)
+   val MDU_DIVU   = 6.asUInt(4.W)
+   val MDU_REM    = 7.asUInt(4.W)
+   val MDU_REMU   = 8.asUInt(4.W)
+   val MDU_X      = 0.asUInt(4.W)
+
    // Writeback Select Signal
    val WB_ALU  = 0.asUInt(2.W)
    val WB_MEM  = 1.asUInt(2.W)
