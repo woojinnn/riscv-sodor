@@ -393,7 +393,7 @@ class DatPath(implicit val conf: SodorConfiguration) extends Module
    csr.io.rw.wdata := mem_reg_alu_out
    csr.io.rw.cmd   := mem_reg_ctrl_csr_cmd
 
-   csr.io.retire    := wb_reg_valid
+   // csr.io.retire    := wb_reg_valid
    csr.io.exception := io.ctl.mem_exception
    csr.io.pc        := mem_reg_pc
    exception_target := csr.io.evec
@@ -402,7 +402,7 @@ class DatPath(implicit val conf: SodorConfiguration) extends Module
    // TODO replay? stall?
 
    // Add your own uarch counters here!
-   csr.io.counters.foreach(_.inc := false.B)
+   // csr.io.counters.foreach(_.inc := false.B)
 
 
    // WB Mux
@@ -454,29 +454,25 @@ class DatPath(implicit val conf: SodorConfiguration) extends Module
 
    val wb_reg_inst = RegNext(mem_reg_inst)
 
-   printf("Cyc= %d [%d] pc=[%x] W[r%d=%x][%d] Op1=[r%d][%x] Op2=[r%d][%x] inst=[%x] %c%c%c DASM(%x)\n",
-      csr.io.time(31,0),
-      csr.io.retire,
-      RegNext(mem_reg_pc),
-      wb_reg_wbaddr,
-      wb_reg_wbdata,
-      wb_reg_ctrl_rf_wen,
-      RegNext(mem_reg_rs1_addr),
-      RegNext(mem_reg_op1_data),
-      RegNext(mem_reg_rs2_addr),
-      RegNext(mem_reg_op2_data),
-      wb_reg_inst,
-      MuxCase(Str(" "), Seq(
-         io.ctl.pipeline_kill -> Str("K"),
-         io.ctl.full_stall -> Str("F"),
-         io.ctl.dec_stall -> Str("S"))),
-      MuxLookup(io.ctl.exe_pc_sel, Str("?"), Seq(
-         PC_BRJMP -> Str("B"),
-         PC_JALR -> Str("R"),
-         PC_EXC -> Str("E"),
-         PC_4 -> Str(" "))),
-      Mux(csr.io.exception, Str("X"), Str(" ")),
-      wb_reg_inst)
+  // Only print when reset is not asserted
+  when (!reset.asBool) {
+     when (wb_reg_valid && wb_reg_ctrl_rf_wen && wb_reg_wbaddr =/= 0.U) {
+        // Retired with register write (not to r0)
+        printf("retire=[1] pc=[%x] inst=[%x] write=[r%d=%x]\n",
+           RegNext(mem_reg_pc),
+           wb_reg_inst,
+           wb_reg_wbaddr,
+           wb_reg_wbdata)
+     } .elsewhen (wb_reg_valid) {
+        // Retired without register write (or write to r0)
+        printf("retire=[1] pc=[%x] inst=[%x]\n",
+           RegNext(mem_reg_pc),
+           wb_reg_inst)
+     } .otherwise {
+        // Bubble/stall - no instruction retired
+        printf("retire=[0]\n")
+     }
+  }
 }
 
 

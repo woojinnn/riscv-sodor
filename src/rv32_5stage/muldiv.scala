@@ -103,14 +103,11 @@ class MulDiv() extends Module {
     val nextMulReg = Cat(prod, mplier(mulw-1, 1))
     val nextMplierSign = count === (mulw-2).U && neg_out
 
-    val eOutMask = ((BigInt(-1) << mulw).S >> (count)(log2Up(mulw)-1,0))(mulw-1,0)
-    val eOut = count =/= (mulw).U && count =/= 0.U && !isHi && (mplier & ~eOutMask) === 0.U
-    val eOutRes = (mulReg >> (mulw.U - count)(log2Up(mulw)-1,0))
-    val nextMulReg1 = Cat(nextMulReg(2*mulw,mulw), Mux(eOut, eOutRes, nextMulReg)(mulw-1,0))
+    val nextMulReg1 = Cat(nextMulReg(2*mulw,mulw), nextMulReg(mulw-1,0))
     remainder := Cat(nextMulReg1 >> w, nextMplierSign, nextMulReg1(w-1,0))
 
     count := count + 1.U
-    when (eOut || count === (mulw-1).U) {
+    when (count === (mulw-1).U) {
       state := s_done_mul
       resHi := isHi
     }
